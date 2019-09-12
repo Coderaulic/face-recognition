@@ -1,6 +1,7 @@
 .Tilt {
-  height: 150px;
   width: 150px;
+  height: 150px;
+  cursor: crosshair;
   background: linear-gradient(89deg, rgb(43, 62, 235) 0%, #04c8DE 100%);
 }
 

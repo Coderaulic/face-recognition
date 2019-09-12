@@ -16,7 +16,10 @@ class App extends Component {
     super();
     this.state = {
       input: '',
-      imgUrl: ''
+      imgUrl: '',
+      boxes: [],
+      error: null,
+      isValidURL: true
     }
   }
 
@@ -24,16 +27,43 @@ class App extends Component {
     this.setState({ input: event.target.value });
   }
 
+  calcFaceLocation = (data) => {
+    const faceLocations = [];
+    const image = document.getElementById('inputImage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+
+    if (Object.keys(data.outputs[0].data).length) {
+      data.outputs[0].data.regions.forEach(region => {
+        const locData = region.region_info.bounding_box;
+        faceLocations.push({
+          leftCol: locData.left_col * width,
+          topRow: locData.top_row * height,
+          rightCol: width - (locData.right_col * width),
+          bottomRow: height - (locData.bottom_row * height)
+        });
+      });
+    }
+    return faceLocations;
+  }
+
+  drawFaceBoxes = (boxCords) => {
+    // this triggers re-render and draws the boxes
+    this.setState({ boxes: boxCords });
+  }
+
   onBtnSubmit = () => {
-    this.setState({ imgUrl: this.state.input });
+    this.setState({
+      boxes: [],
+      error: null,
+      imgUrl: this.state.input
+    });
     if (this.state.input) {
-      app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input )
-        .then((response) => {
-          console.log('response: ', response.outputs[0].data.regions[0].region_info.bounding_box);
-        }).catch((err) => {
-          // there was an error
-        }
-      );
+      app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+        .then(response => this.drawFaceBoxes(this.calcFaceLocation(response)))
+        .catch(err => {
+          this.setState({ error: err });
+        });
     }
   }
 
@@ -44,10 +74,16 @@ class App extends Component {
         <Logo />
         <Rank />
         <ImageLinkForm
-          onInputChange={ this.onInputChange } onBtnSubmit={ this.onBtnSubmit }
+          onBtnSubmit={ this.onBtnSubmit }
+          onInputChange={ this.onInputChange }
         />
         <Particles className='particles' params={ particleOptions } />
-        <FaceRecognition imgUrl={ this.state.imgUrl } />
+        <FaceRecognition
+          boxes={ this.state.boxes }
+          error={ this.state.error }
+          imgUrl={ this.state.imgUrl }
+          validURL={ this.state.isValidURL }
+        />
       </div>
     );
   }
