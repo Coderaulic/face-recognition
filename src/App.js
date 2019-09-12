@@ -99,7 +99,6 @@ class App extends Component {
           boxes={ this.state.boxes }
           error={ this.state.error }
           imgUrl={ this.state.imgUrl }
-          validURL={ this.state.isValidURL }
         />
       </div>
     );
