@@ -18,9 +18,26 @@ class App extends Component {
       input: '',
       imgUrl: '',
       boxes: [],
-      error: null,
-      isValidURL: true
+      error: null
     }
+  }
+
+  componentDidMount() {
+    // if window is resized with faceboxes, they distort.
+    // after resizing, trigger onSubmit to auto fix 🤣
+    let timeout = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(this.doneResizing, 1000);
+    });
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.doneResizing);
+  }
+
+  doneResizing = () => {
+    this.onBtnSubmit();
   }
 
   onInputChange = (event) => {
